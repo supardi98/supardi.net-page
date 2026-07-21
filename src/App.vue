@@ -101,8 +101,11 @@ const enterSystem = () => {
 }
 
 onMounted(async () => {
+  fetchPortfolios()
+  fetchSkills()
+
   try {
-    const res = await fetch('https://ipapi.co/json/')
+    const res = await fetch('https://api.ipify.org?format=json')
     const data = await res.json()
     if (data.ip) {
       visitorIP.value = data.ip
@@ -190,44 +193,83 @@ const handleScroll = () => {
 }
 
 const portfolioSectionRef = ref(null)
+const isLoadingPortfolios = ref(true)
+const portfolios = ref([])
 
-const portfolios = ref([
-  { id: 1, title: 'sys_ecommerce.exe', displayTitle: '', desc: 'Executing commerce protocols...', displayDesc: '', fullDesc: 'A comprehensive e-commerce platform built from scratch. Features include real-time inventory tracking, secure payment gateways, and a custom admin dashboard for order management.', tech: ['Vue 3', 'Tailwind', 'Cloudflare D1', 'Stripe API'], image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&q=80' },
-  { id: 2, title: 'admin_panel.sh', displayTitle: '', desc: 'Root access dashboard interface.', displayDesc: '', fullDesc: 'Internal tooling interface designed for system administrators. Provides data visualization, user access control, and live server health monitoring.', tech: ['Nuxt.js', 'Chart.js', 'WebSockets', 'PostgreSQL'], image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&q=80' },
-  { id: 3, title: 'social_node.js', displayTitle: '', desc: 'P2P network communication layer.', displayDesc: '', fullDesc: 'A decentralized social media prototype emphasizing user privacy and data ownership. Implements peer-to-peer message passing and encrypted local storage.', tech: ['Node.js', 'WebRTC', 'IndexedDB', 'Express'], image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&q=80' },
-])
+const fetchPortfolios = async () => {
+  try {
+    if (import.meta.env.DEV) {
+      await new Promise(r => setTimeout(r, 1000))
+      portfolios.value = [
+        { id: 1, title: 'sys_ecommerce.exe', displayTitle: '', desc: 'Executing commerce protocols...', displayDesc: '', fullDesc: 'A comprehensive e-commerce platform built from scratch. Features include real-time inventory tracking, secure payment gateways, and a custom admin dashboard for order management.', tech: ['Vue 3', 'Tailwind', 'Cloudflare D1', 'Stripe API'], image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&q=80', imageGrid: Array(48).fill(true) },
+        { id: 2, title: 'admin_panel.sh', displayTitle: '', desc: 'Root access dashboard interface.', displayDesc: '', fullDesc: 'Internal tooling interface designed for system administrators. Provides data visualization, user access control, and live server health monitoring.', tech: ['Nuxt.js', 'Chart.js', 'WebSockets', 'PostgreSQL'], image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&q=80', imageGrid: Array(48).fill(true) },
+        { id: 3, title: 'social_node.js', displayTitle: '', desc: 'P2P network communication layer.', displayDesc: '', fullDesc: 'A decentralized social media prototype emphasizing user privacy and data ownership. Implements peer-to-peer message passing and encrypted local storage.', tech: ['Node.js', 'WebRTC', 'IndexedDB', 'Express'], image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&q=80', imageGrid: Array(48).fill(true) },
+      ]
+    } else {
+      const res = await fetch('/api/portfolios')
+      const data = await res.json()
+      portfolios.value = data.map(item => ({
+        ...item,
+        displayTitle: '',
+        displayDesc: '',
+        imageGrid: Array(48).fill(true)
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to fetch portfolios', e)
+  } finally {
+    isLoadingPortfolios.value = false
+  }
+}
 
 const decryptChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*!'
 
 const animatePortfolios = () => {
-  portfolios.value.forEach((item, idx) => {
-    setTimeout(() => {
-      let iteration = 0;
-      if (item.animInterval) clearInterval(item.animInterval)
-      item.animInterval = setInterval(() => {
-        item.displayTitle = item.title.split('').map((char, i) => {
-          if (char === ' ') return ' '
-          if (i < iteration) return item.title[i]
-          return decryptChars[Math.floor(Math.random() * decryptChars.length)]
-        }).join('')
+  const animateItem = (idx) => {
+    if (idx >= portfolios.value.length) return;
+    const item = portfolios.value[idx];
+    
+    let iteration = 0;
+    if (item.animInterval) clearInterval(item.animInterval)
+    item.animInterval = setInterval(() => {
+      item.displayTitle = item.title.split('').map((char, i) => {
+        if (char === ' ') return ' '
+        if (i < iteration) return item.title[i]
+        return decryptChars[Math.floor(Math.random() * decryptChars.length)]
+      }).join('')
+      
+      item.displayDesc = item.desc.split('').map((char, i) => {
+        if (char === ' ') return ' '
+        if (i < iteration) return item.desc[i]
+        return decryptChars[Math.floor(Math.random() * decryptChars.length)]
+      }).join('')
+      
+      // Pixel grid reveal
+      let blocksToClear = 4;
+      while(blocksToClear > 0) {
+        const visibleBlocks = item.imageGrid.map((v, i) => v ? i : -1).filter(i => i !== -1);
+        if (visibleBlocks.length === 0) break;
+        const randomBlock = visibleBlocks[Math.floor(Math.random() * visibleBlocks.length)];
+        item.imageGrid[randomBlock] = false;
+        blocksToClear--;
+      }
+      
+      // Wait until description has fully resolved
+      if (iteration > Math.max(item.title.length, item.desc.length)) {
+        clearInterval(item.animInterval)
+        item.displayTitle = item.title
+        item.displayDesc = item.desc
+        item.imageGrid = Array(48).fill(false) // ensure all blocks are clear
         
-        item.displayDesc = item.desc.split('').map((char, i) => {
-          if (char === ' ') return ' '
-          // Middle-ground speed
-          if (i < iteration / 2) return item.desc[i]
-          return decryptChars[Math.floor(Math.random() * decryptChars.length)]
-        }).join('')
-        
-        // Wait until description has fully resolved
-        if (iteration > Math.max(item.title.length, item.desc.length * 2)) {
-          clearInterval(item.animInterval)
-          item.displayTitle = item.title
-          item.displayDesc = item.desc
-        }
-        iteration += 1
-      }, 35)
-    }, idx * 300)
-  })
+        // Trigger next item in the sequence
+        animateItem(idx + 1)
+      }
+      iteration += 1
+    }, 25)
+  }
+  
+  // Start the chain reaction with the first item
+  animateItem(0)
 }
 
 const resetPortfolios = () => {
@@ -235,17 +277,40 @@ const resetPortfolios = () => {
     if (item.animInterval) clearInterval(item.animInterval)
     item.displayTitle = ''
     item.displayDesc = ''
+    item.imageGrid = Array(48).fill(true)
   })
 }
 
-const skills = ref([
-  { name: 'JavaScript / TypeScript', level: 90, currentLevel: 0 },
-  { name: 'Vue.js / Nuxt', level: 85, currentLevel: 0 },
-  { name: 'Tailwind CSS', level: 95, currentLevel: 0 },
-  { name: 'Node.js / Express', level: 80, currentLevel: 0 },
-  { name: 'Cloudflare / D1', level: 75, currentLevel: 0 },
-  { name: 'Linux / Bash', level: 85, currentLevel: 0 },
-])
+const isLoadingSkills = ref(true)
+const skills = ref([])
+
+const fetchSkills = async () => {
+  try {
+    if (import.meta.env.DEV) {
+      await new Promise(r => setTimeout(r, 1000))
+      skills.value = [
+        { name: 'JavaScript / TypeScript', level: 90, currentLevel: 0 },
+        { name: 'Vue.js / Nuxt', level: 85, currentLevel: 0 },
+        { name: 'Tailwind CSS', level: 95, currentLevel: 0 },
+        { name: 'Node.js / Express', level: 80, currentLevel: 0 },
+        { name: 'Cloudflare / D1', level: 75, currentLevel: 0 },
+        { name: 'Linux / Bash', level: 85, currentLevel: 0 },
+      ]
+    } else {
+      const res = await fetch('/api/skills')
+      const data = await res.json()
+      skills.value = data.map(item => ({
+        name: item.name,
+        level: item.level,
+        currentLevel: 0
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to fetch skills', e)
+  } finally {
+    isLoadingSkills.value = false
+  }
+}
 
 const skillsVisible = ref(false)
 const skillsSectionRef = ref(null)
@@ -559,7 +624,18 @@ const submitContactTerminal = async () => {
           > ls -la ./portfolio
         </h2>
         
-        <div class="w-full flex flex-col gap-6">
+        <div v-if="isLoadingPortfolios" class="w-full flex flex-col items-center justify-center py-12 border border-green-900 bg-black/40 backdrop-blur-md">
+          <div class="animate-spin mb-4 text-green-500">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <p class="text-green-500 font-mono text-sm animate-pulse">> ESTABLISHING DATABASE CONNECTION...</p>
+          <p class="text-green-600 font-mono text-xs">> DOWNLOADING ASSETS...</p>
+        </div>
+
+        <div v-else class="w-full flex flex-col gap-6">
           <div 
             v-for="item in portfolios" 
             :key="item.id" 
@@ -571,8 +647,17 @@ const submitContactTerminal = async () => {
             <div class="absolute top-0 left-0 w-2 h-2 border-t border-l border-green-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div class="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-green-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-            <div class="w-full md:w-1/3 h-32 overflow-hidden border-b md:border-b-0 md:border-r border-green-900 group-hover:border-green-500">
+            <div class="w-full md:w-1/3 h-32 md:h-full bg-green-900/20 border-b md:border-b-0 md:border-r border-green-900 relative overflow-hidden">
                <img :src="item.image" :alt="item.title" class="w-full h-full object-cover opacity-40 group-hover:opacity-80 grayscale group-hover:grayscale-0 transition-all duration-300 mix-blend-screen" />
+               <!-- Pixel Grid Overlay -->
+               <div class="absolute inset-0 grid grid-cols-8 grid-rows-6">
+                 <div 
+                   v-for="(isSolid, i) in item.imageGrid" 
+                   :key="i"
+                   class="bg-black transition-opacity duration-[50ms]"
+                   :class="isSolid ? 'opacity-100' : 'opacity-0'"
+                 ></div>
+               </div>
             </div>
             <div class="p-5 flex flex-col justify-center w-full md:w-2/3">
               <h3 class="text-lg font-bold text-green-500 mb-1 group-hover:text-green-400">> {{ item.displayTitle ?? item.title }}</h3>
@@ -588,7 +673,18 @@ const submitContactTerminal = async () => {
       <h2 class="text-xl font-bold text-green-500 mb-6 border-b border-green-500/30 pb-2">
         > ./check_skills.sh
       </h2>
-      <div class="bg-black/40 backdrop-blur-md border border-green-900 p-6 flex flex-col gap-4 font-mono text-xs sm:text-sm">
+      
+      <div v-if="isLoadingSkills" class="w-full flex flex-col items-center justify-center py-12 border border-green-900 bg-black/40 backdrop-blur-md">
+        <div class="animate-spin mb-4 text-green-500">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <p class="text-green-500 font-mono text-sm animate-pulse">> ANALYZING SYSTEM CAPABILITIES...</p>
+      </div>
+
+      <div v-else class="bg-black/40 backdrop-blur-md border border-green-900 p-6 flex flex-col gap-4 font-mono text-xs sm:text-sm">
         <div v-for="skill in skills" :key="skill.name" class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group">
           <div class="w-48 text-green-400 group-hover:text-green-300 transition-colors shrink-0">
             {{ skill.name }}
@@ -677,47 +773,51 @@ const submitContactTerminal = async () => {
     </div>
 
     <!-- Portfolio Detail Dialog -->
-    <div v-if="selectedPortfolio" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <!-- Backdrop -->
-      <div class="absolute inset-0 bg-black/40 backdrop-blur-md cursor-pointer" @click="closeDialog"></div>
-      
-      <!-- Modal Content -->
-      <div class="relative w-full max-w-2xl bg-black/50 backdrop-blur-xl border border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)] flex flex-col max-h-[90vh]">
+    <transition name="modal">
+      <div v-if="selectedPortfolio" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-md cursor-pointer" @click="closeDialog"></div>
         
-        <!-- Terminal Header -->
-        <div class="w-full h-8 bg-green-900/30 border-b border-green-500/50 flex items-center justify-between px-3 shrink-0">
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-green-400 font-mono uppercase tracking-widest">VIEWER // {{ selectedPortfolio.title }}</span>
+        <!-- Modal Content -->
+        <div class="modal-dialog relative w-full max-w-2xl bg-black/50 backdrop-blur-xl border border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)] flex flex-col max-h-[90vh]">
+          
+          <!-- Terminal Header -->
+          <div class="w-full h-8 bg-green-900/30 border-b border-green-500/50 flex items-center justify-between px-3 shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-green-400 font-mono uppercase tracking-widest">VIEWER // {{ selectedPortfolio.title }}</span>
+            </div>
+            <button @click="closeDialog" class="text-green-500 hover:text-white hover:bg-red-600 px-2 text-sm font-bold transition-colors">
+              X
+            </button>
           </div>
-          <button @click="closeDialog" class="text-green-500 hover:text-white hover:bg-red-600 px-2 text-sm font-bold transition-colors">
-            X
-          </button>
-        </div>
 
-        <!-- Body -->
-        <div class="p-6 overflow-y-auto">
-          <img :src="selectedPortfolio.image" :alt="selectedPortfolio.title" class="w-full h-48 md:h-64 object-cover border border-green-900 mb-6 grayscale hover:grayscale-0 transition-all duration-500" />
-          
-          <h2 class="text-2xl font-bold text-green-400 mb-2">> {{ selectedPortfolio.title }}</h2>
-          <p class="text-green-700 text-sm font-mono mb-6 leading-relaxed">{{ selectedPortfolio.fullDesc }}</p>
-          
-          <div class="mb-2 text-green-500 text-xs uppercase tracking-widest border-b border-green-900 pb-1">> STACK_TRACE</div>
-          <div class="flex flex-wrap gap-2 mt-3">
-            <span v-for="(tech, idx) in selectedPortfolio.tech" :key="idx" class="px-2 py-1 border border-green-800 bg-green-900/20 text-[10px] text-green-400">
-              {{ tech }}
-            </span>
+          <!-- Body -->
+          <div class="p-6 overflow-y-auto overflow-x-hidden">
+            <img :src="selectedPortfolio.image" :alt="selectedPortfolio.title" class="animate-modal-item [animation-delay:100ms] w-full h-48 md:h-64 object-cover border border-green-900 mb-6 grayscale hover:grayscale-0 transition-all duration-500" />
+            
+            <h2 class="animate-modal-item [animation-delay:200ms] text-2xl font-bold text-green-400 mb-2">> {{ selectedPortfolio.title }}</h2>
+            <p class="animate-modal-item [animation-delay:300ms] text-green-700 text-sm font-mono mb-6 leading-relaxed">{{ selectedPortfolio.fullDesc }}</p>
+            
+            <div class="animate-modal-item [animation-delay:400ms]">
+              <div class="mb-2 text-green-500 text-xs uppercase tracking-widest border-b border-green-900 pb-1">> STACK_TRACE</div>
+              <div class="flex flex-wrap gap-2 mt-3">
+                <span v-for="(tech, idx) in selectedPortfolio.tech" :key="idx" class="px-2 py-1 border border-green-800 bg-green-900/20 text-[10px] text-green-400">
+                  {{ tech }}
+                </span>
+              </div>
+            </div>
+            
           </div>
           
-        </div>
-        
-        <!-- Footer -->
-        <div class="p-4 border-t border-green-900/50 flex justify-end shrink-0">
-           <button @click="closeDialog" class="px-6 py-2 border border-green-500 text-green-500 font-bold tracking-widest text-xs hover-blink">
-             [ CLOSE ]
-           </button>
+          <!-- Footer -->
+          <div class="p-4 border-t border-green-900/50 flex justify-end shrink-0">
+             <button @click="closeDialog" class="px-6 py-2 border border-green-500 text-green-500 font-bold tracking-widest text-xs hover-blink">
+               [ CLOSE ]
+             </button>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
 
   </div>
 </template>
@@ -810,5 +910,33 @@ a, button, input, textarea, [cursor="pointer"] {
 }
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Modal Vue Transition */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-enter-active .modal-dialog,
+.modal-leave-active .modal-dialog {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .modal-dialog,
+.modal-leave-to .modal-dialog {
+  transform: scale(0.95) translateY(15px);
+}
+
+/* Modal Content Staggered Animation */
+.animate-modal-item {
+  opacity: 0;
+  animation: modalSlideUp 0.4s ease-out forwards;
+}
+@keyframes modalSlideUp {
+  0% { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 </style>
