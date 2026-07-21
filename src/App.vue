@@ -485,11 +485,140 @@ const contactStatus = ref(null)
 
 const contactState = ref('idle') // idle, initiating, ready
 const contactLogs = ref([])
-
-const contactStep = ref(0)
 const contactHistory = ref([])
-const currentInput = ref('')
-const terminalInputRef = ref(null)
+const contactStep = ref(0) // 0: Name, 1: Email, 2: Message, 3: Done
+
+// Game State
+const isGameOpen = ref(false)
+const gameCanvas = ref(null)
+const gameScore = ref(0)
+const isGameOver = ref(false)
+let gameInterval = null;
+let handleGameInput = null;
+
+const openGame = () => {
+  isGameOpen.value = true
+  isGameOver.value = false
+  gameScore.value = 0
+  setTimeout(initGame, 100) // wait for canvas to mount
+}
+
+const closeGame = () => {
+  isGameOpen.value = false
+  if (gameInterval) clearInterval(gameInterval);
+  if (handleGameInput) {
+    window.removeEventListener('keydown', handleGameInput);
+    handleGameInput = null;
+  }
+}
+
+const initGame = () => {
+  if (!gameCanvas.value) return;
+  const canvas = gameCanvas.value;
+  const ctx = canvas.getContext('2d');
+  
+  const gridSize = 15;
+  const tileCountX = Math.floor(canvas.width / gridSize);
+  const tileCountY = Math.floor(canvas.height / gridSize);
+  
+  let px = 10, py = 10; 
+  let ax = 15, ay = 10; 
+  let gx = 2, gy = 2; 
+  
+  let xv = 0, yv = 0; 
+  
+  gameScore.value = 0;
+  isGameOver.value = false;
+  
+  handleGameInput = (e) => {
+    switch(e.key) {
+      case 'ArrowLeft': case 'a': xv = -1; yv = 0; break;
+      case 'ArrowUp': case 'w': xv = 0; yv = -1; break;
+      case 'ArrowRight': case 'd': xv = 1; yv = 0; break;
+      case 'ArrowDown': case 's': xv = 0; yv = 1; break;
+    }
+    // Prevent default scrolling when playing
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].indexOf(e.key) > -1) {
+        e.preventDefault();
+    }
+  }
+  window.addEventListener('keydown', handleGameInput, { passive: false });
+  
+  const gameLoop = () => {
+    if (isGameOver.value) return;
+    
+    px += xv;
+    py += yv;
+    
+    if (px < 0) px = tileCountX - 1;
+    if (px >= tileCountX) px = 0;
+    if (py < 0) py = tileCountY - 1;
+    if (py >= tileCountY) py = 0;
+    
+    // Ghost AI
+    // Makes the ghost move much slower (only 25% chance to move per frame)
+    if (Math.random() > 0.75) {
+      if (gx < px) gx++;
+      else if (gx > px) gx--;
+      else if (gy < py) gy++;
+      else if (gy > py) gy--;
+    }
+    
+    if (gx < 0) gx = 0;
+    if (gx >= tileCountX) gx = tileCountX - 1;
+    if (gy < 0) gy = 0;
+    if (gy >= tileCountY) gy = tileCountY - 1;
+    
+    if (px === gx && py === gy) {
+      isGameOver.value = true;
+      return;
+    }
+    
+    if (px === ax && py === ay) {
+      gameScore.value += 10;
+      ax = Math.floor(Math.random() * tileCountX);
+      ay = Math.floor(Math.random() * tileCountY);
+      playHoverSound();
+    }
+    
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(ax * gridSize, ay * gridSize, gridSize - 2, gridSize - 2);
+    
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(gx * gridSize, gy * gridSize, gridSize - 2, gridSize - 2);
+    
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    let mouthOffset = 0.2;
+    if (xv === -1) mouthOffset = 1.2;
+    else if (yv === -1) mouthOffset = 1.7;
+    else if (yv === 1) mouthOffset = 0.7;
+    
+    const isOpen = (Date.now() % 300) > 150;
+    if (!isOpen) {
+      ctx.arc(px * gridSize + gridSize/2, py * gridSize + gridSize/2, gridSize/2 - 1, 0, 2 * Math.PI);
+    } else {
+      ctx.arc(px * gridSize + gridSize/2, py * gridSize + gridSize/2, gridSize/2 - 1, (mouthOffset) * Math.PI, (mouthOffset + 1.6) * Math.PI);
+      ctx.lineTo(px * gridSize + gridSize/2, py * gridSize + gridSize/2);
+    }
+    ctx.fill();
+    
+    ctx.strokeStyle = '#052e16';
+    ctx.lineWidth = 1;
+    for(let i=0; i<canvas.width; i+=gridSize) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+    }
+    for(let i=0; i<canvas.height; i+=gridSize) {
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+    }
+  }
+  
+  if (gameInterval) clearInterval(gameInterval);
+  gameInterval = setInterval(gameLoop, 150);
+}
 
 const initiateContact = () => {
   contactState.value = 'initiating'
@@ -847,14 +976,68 @@ const submitContactTerminal = async () => {
       NETWORK: CLOUDFLARE_NODE // UPTIME: {{ formattedUptime }} // SYS_TIME: {{ sysTimeHex }}
     </footer>
 
-    <!-- Scroll Progress Indicator (Download Style) -->
+    <!-- Scroll Progress Indicator -->
     <div class="fixed bottom-0 left-0 w-full h-8 bg-black/90 border-t border-green-500/40 z-50 flex items-center px-4 font-mono text-[10px] text-green-500 backdrop-blur-md">
       <div class="w-24 shrink-0 animate-pulse">PROGRESS</div>
-      <div class="flex-1 mx-4 bg-green-900/30 h-2 border border-green-500/40 relative overflow-hidden">
-        <div class="absolute top-0 left-0 h-full bg-green-500 transition-all duration-150 ease-out" :style="{ width: `${scrollProgress}%` }"></div>
+      
+      <div class="flex-1 mx-4 relative h-full flex items-center">
+        <!-- The track -->
+        <div class="w-full bg-green-900/30 h-2 border border-green-500/40 overflow-hidden relative">
+           <div class="absolute top-0 left-0 h-full bg-green-500 transition-all duration-150 ease-out" :style="{ width: `${scrollProgress}%` }"></div>
+        </div>
+        
+        <!-- Pac-Man Crawler -->
+        <div class="absolute top-1/2 -translate-y-1/2 transition-all duration-150 z-10" :style="{ left: `calc(${scrollProgress}% - 8px)` }">
+          <svg v-if="scrollProgress % 2 === 0" viewBox="0 0 100 100" class="w-4 h-4 fill-yellow-400">
+            <!-- Open mouth -->
+            <path d="M 50 50 L 100 20 A 50 50 0 1 0 100 80 Z" />
+          </svg>
+          <svg v-else viewBox="0 0 100 100" class="w-4 h-4 fill-yellow-400">
+            <!-- Slightly open mouth -->
+            <path d="M 50 50 L 100 45 A 50 50 0 1 0 100 55 Z" />
+          </svg>
+        </div>
       </div>
-      <div class="w-12 shrink-0 text-right">[{{ scrollProgress }}%]</div>
+
+      <!-- Play Button (appears at 100%) -->
+      <button v-if="scrollProgress === 100" @click="openGame" class="shrink-0 ml-2 px-3 py-1 bg-green-500 text-black font-bold animate-pulse hover:animate-none hover:bg-green-400 uppercase tracking-widest text-xs border border-green-400">
+        [ PLAY ]
+      </button>
+
+      <div v-else class="w-16 shrink-0 text-right">[{{ scrollProgress }}%]</div>
     </div>
+
+    <!-- Game Modal -->
+    <transition name="modal">
+      <div v-if="isGameOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md cursor-pointer" @click="closeGame"></div>
+        <div class="relative bg-black border-2 border-green-500 shadow-[0_0_40px_rgba(34,197,94,0.4)] flex flex-col items-center p-4">
+          
+          <div class="w-full flex justify-between items-center text-green-500 font-mono mb-2 border-b border-green-500/50 pb-2">
+            <span>> MICRO_PACMAN.exe</span>
+            <span class="text-yellow-400">SCORE: {{ gameScore }}</span>
+          </div>
+
+          <canvas ref="gameCanvas" width="300" height="300" class="border border-green-900 bg-black"></canvas>
+          
+          <div v-if="isGameOver" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10 backdrop-blur-sm">
+            <span class="text-red-500 font-bold text-3xl mb-2 tracking-widest uppercase animate-pulse">GAME OVER</span>
+            <span class="text-yellow-400 font-mono mb-8">FINAL SCORE: {{ gameScore }}</span>
+            <button @click="initGame" class="px-6 py-2 border border-green-500 text-green-500 font-bold hover:bg-green-500 hover:text-black transition-colors mb-4">
+              [ RESTART ]
+            </button>
+            <button @click="closeGame" class="text-green-700 text-xs hover:text-green-400">
+              EXIT SYSTEM
+            </button>
+          </div>
+          
+          <div class="w-full text-center text-green-700 text-[10px] font-mono mt-4 uppercase tracking-widest leading-relaxed">
+            [ W A S D ] OR [ ARROWS ] TO MOVE.<br/>
+            EAT <span class="text-green-500">DATA</span>. AVOID RED <span class="text-red-500">VIRUS</span>.
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <!-- Portfolio Detail Dialog -->
     <transition name="modal">
