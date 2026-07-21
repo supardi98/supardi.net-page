@@ -47,6 +47,7 @@ const handleMouseMove = (e) => {
 const playAudio = async () => {
   if (audioRef.value && !isPlaying.value) {
     try {
+      audioRef.value.volume = 0.1
       await audioRef.value.play()
       isPlaying.value = true
     } catch (err) {
@@ -61,6 +62,7 @@ const toggleAudio = () => {
     if (isPlaying.value) {
       audioRef.value.pause()
     } else {
+      audioRef.value.volume = 0.1
       audioRef.value.play()
     }
     isPlaying.value = !isPlaying.value
@@ -80,6 +82,7 @@ const enterSystem = () => {
   const typeName = () => {
     if (i < fullName.length) {
       displayedName.value += fullName.charAt(i)
+      playTypingSound()
       i++
       // random typing speed
       setTimeout(typeName, Math.random() * 50 + 50)
@@ -92,6 +95,7 @@ const enterSystem = () => {
   const typeBio = () => {
     if (j < fullBio.length) {
       displayedBio.value += fullBio.charAt(j)
+      playTypingSound()
       j++
       setTimeout(typeBio, Math.random() * 30 + 30)
     }
@@ -150,6 +154,8 @@ onMounted(async () => {
 
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseover', handleGlobalMouseOver)
+  document.addEventListener('click', handleGlobalClick)
 
   if (skillsSectionRef.value) {
     const observer = new IntersectionObserver((entries) => {
@@ -176,9 +182,82 @@ onMounted(async () => {
   }
 })
 
+// --- Audio System ---
+let audioCtx = null;
+const initAudio = () => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+const playTone = (freq = 800, type = 'sine', duration = 0.05, vol = 0.1) => {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  
+  // Set initial volume, then fade to 0 linearly
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+const playHoverSound = () => playTone(1200, 'sine', 0.05, 0.08);
+const playClickSound = () => playTone(400, 'square', 0.1, 0.15);
+
+// Percussive tick sound for typing
+const playTypingSound = () => {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = 'sine';
+  // Rapid pitch drop creates a "click" or "tick" sound
+  osc.frequency.setValueAtTime(1000 + Math.random() * 500, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.015);
+  
+  gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015);
+  
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.02);
+}
+
+const handleGlobalMouseOver = (e) => {
+  if (e.target && e.target.closest && (e.target.closest('a') || e.target.closest('button') || e.target.closest('.group'))) {
+    playHoverSound();
+  }
+}
+const handleGlobalClick = (e) => {
+  initAudio();
+  if (e.target && e.target.closest && (e.target.closest('a') || e.target.closest('button') || e.target.closest('.group'))) {
+    playClickSound();
+  }
+}
+// --------------------
+
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseover', handleGlobalMouseOver)
+  document.removeEventListener('click', handleGlobalClick)
 })
 
 const scrollProgress = ref(0)
@@ -244,6 +323,8 @@ const animatePortfolios = () => {
         return decryptChars[Math.floor(Math.random() * decryptChars.length)]
       }).join('')
       
+      if (iteration % 2 === 0) playTypingSound();
+
       // Pixel grid reveal
       let blocksToClear = 4;
       while(blocksToClear > 0) {
@@ -325,6 +406,7 @@ const animateSkillNumbers = () => {
     if (activeSkill) {
       // Random choppy increment
       activeSkill.currentLevel += Math.floor(Math.random() * 15) + 5
+      playTypingSound()
       if (activeSkill.currentLevel > activeSkill.level) {
         activeSkill.currentLevel = activeSkill.level
       }
@@ -425,6 +507,7 @@ const initiateContact = () => {
     delay += 600
     setTimeout(() => {
       contactLogs.value.push(log)
+      playTypingSound()
     }, delay)
   })
   
@@ -740,6 +823,7 @@ const submitContactTerminal = async () => {
                 ref="terminalInputRef"
                 v-model="currentInput" 
                 @keyup.enter="handleTerminalEnter"
+                @keydown="playTypingSound"
                 type="text" 
                 class="bg-transparent border-none outline-none text-green-400 flex-1 min-w-0 font-mono caret-transparent z-10"
                 autocomplete="off"
