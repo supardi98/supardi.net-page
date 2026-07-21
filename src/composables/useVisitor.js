@@ -6,11 +6,11 @@ export function useVisitor() {
 
   const fetchVisitorData = async () => {
     try {
-      const res = await fetch('https://api.ipify.org?format=json')
+      const res = await fetch('https://ip.iplocation.io/json')
       const data = await res.json()
       if (data.ip) {
         visitorIP.value = data.ip
-        visitorLocation.value = `${data.city ? data.city.toUpperCase() : 'UNKNOWN'}, ${data.country_name ? data.country_name.toUpperCase() : 'UNKNOWN'}`
+        visitorLocation.value = `${data.city ? data.city.toUpperCase() : 'UNKNOWN'}, ${data.region ? data.region.toUpperCase() : ''} ${data.country ? data.country.toUpperCase() : ''}`
       } else {
         visitorIP.value = `104.28.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
         visitorLocation.value = 'PROXY DETECTED'
