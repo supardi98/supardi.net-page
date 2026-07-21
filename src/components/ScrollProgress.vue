@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { ChevronUp, ChevronDown } from 'lucide-vue-next'
+import { useAudio } from '../composables/useAudio'
 
 const emit = defineEmits(['open-game'])
+
+const { playClickSound } = useAudio()
 
 const scrollProgress = ref(0)
 
@@ -12,6 +16,27 @@ const handleScroll = () => {
     scrollProgress.value = Math.round((scrollTop / scrollHeight) * 100)
   } else {
     scrollProgress.value = 0
+  }
+}
+
+const navigateSection = (direction) => {
+  playClickSound()
+  const sections = Array.from(document.querySelectorAll('.scroll-section'))
+  if (sections.length === 0) return
+  
+  const currentScroll = window.scrollY
+  const offset = 100
+  
+  let target = null
+  
+  if (direction === 'down') {
+    target = sections.find(s => s.offsetTop > currentScroll + offset)
+  } else {
+    target = sections.slice().reverse().find(s => s.offsetTop < currentScroll - offset)
+  }
+  
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth' })
   }
 }
 
@@ -57,5 +82,15 @@ const openGame = () => {
     </button>
 
     <div v-else class="w-16 shrink-0 text-right">[{{ scrollProgress }}%]</div>
+    
+    <!-- Navigation Buttons -->
+    <div v-if="scrollProgress > 5" class="absolute bottom-full right-4 mb-4 flex flex-col gap-2 z-50">
+      <button @click="navigateSection('up')" class="w-10 h-10 flex items-center justify-center border border-green-500 bg-black/80 hover:bg-green-500 hover:text-black transition-colors text-green-500 backdrop-blur-md shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+        <ChevronUp class="w-6 h-6" />
+      </button>
+      <button @click="navigateSection('down')" class="w-10 h-10 flex items-center justify-center border border-green-500 bg-black/80 hover:bg-green-500 hover:text-black transition-colors text-green-500 backdrop-blur-md shadow-[0_0_10px_rgba(34,197,94,0.2)]" v-if="scrollProgress < 100">
+        <ChevronDown class="w-6 h-6" />
+      </button>
+    </div>
   </div>
 </template>

@@ -44,3 +44,19 @@ INSERT INTO skills (name, level, order_index) VALUES
 ('Node.js / Express', 80, 4),
 ('Cloudflare / D1', 75, 5),
 ('Linux / Bash', 85, 6);
+
+CREATE TABLE IF NOT EXISTS links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  url TEXT NOT NULL,
+  icon TEXT NOT NULL,
+  order_index INTEGER DEFAULT 0
+);
+
+-- Seed Data for Links
+INSERT INTO links (title, url, icon, order_index) VALUES 
+('My Portfolio', '#portfolio', 'Terminal', 1),
+('@supardi._', 'https://instagram.com/supardi._', 'Instagram', 2),
+('supardi98', 'https://github.com/supardi98', 'Github', 3),
+('contact@supardi.net', 'mailto:contact@supardi.net', 'Mail', 4),
+('6287728864687', 'https://wa.me/6287728864687', 'MessageCircle', 5);

@@ -168,7 +168,7 @@ onUnmounted(() => {
     <div class="w-full flex flex-col items-center z-10 relative">
       
       <!-- Hero Section -->
-      <main class="w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
+      <main class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
         <HeroProfile 
           :profile="profile"
           :displayedName="displayedName"
@@ -183,17 +183,17 @@ onUnmounted(() => {
       </main>
 
       <!-- Portfolio Section -->
-      <section class="w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
+      <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
         <PortfolioSection />
       </section>
       
       <!-- Skills Section -->
-      <section class="w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
+      <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
         <SkillsMatrix />
       </section>
 
       <!-- Contact Section -->
-      <section class="w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
+      <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
         <TerminalContact />
       </section>
 

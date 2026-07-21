@@ -11,13 +11,43 @@ const props = defineProps({
 
 const { visitorIP, visitorLocation, fetchVisitorData } = useVisitor()
 
-const links = ref([
-  { id: 1, title: 'My Portfolio', url: '#portfolio', icon: markRaw(Terminal) },
-  { id: 2, title: '@supardi._', url: 'https://instagram.com/supardi._', icon: markRaw(Instagram) },
-  { id: 3, title: 'supardi98', url: 'https://github.com/supardi98', icon: markRaw(Github) },
-  { id: 4, title: 'contact@supardi.net', url: 'mailto:contact@supardi.net', icon: markRaw(Mail) },
-  { id: 5, title: '6287728864687', url: 'https://wa.me/6287728864687', icon: markRaw(MessageCircle) },
-])
+const iconMap = {
+  Terminal: markRaw(Terminal),
+  Instagram: markRaw(Instagram),
+  Github: markRaw(Github),
+  Mail: markRaw(Mail),
+  MessageCircle: markRaw(MessageCircle),
+  Globe: markRaw(Globe)
+}
+
+const links = ref([])
+const isLoadingLinks = ref(true)
+
+const fetchLinks = async () => {
+  try {
+    if (import.meta.env.DEV) {
+      await new Promise(r => setTimeout(r, 500))
+      links.value = [
+        { id: 1, title: 'My Portfolio', url: '#portfolio', icon: iconMap['Terminal'] },
+        { id: 2, title: '@supardi._', url: 'https://instagram.com/supardi._', icon: iconMap['Instagram'] },
+        { id: 3, title: 'supardi98', url: 'https://github.com/supardi98', icon: iconMap['Github'] },
+        { id: 4, title: 'contact@supardi.net', url: 'mailto:contact@supardi.net', icon: iconMap['Mail'] },
+        { id: 5, title: '6287728864687', url: 'https://wa.me/6287728864687', icon: iconMap['MessageCircle'] },
+      ]
+    } else {
+      const res = await fetch('/api/links')
+      const data = await res.json()
+      links.value = data.map(item => ({
+        ...item,
+        icon: iconMap[item.icon] || iconMap['Globe']
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to fetch links', e)
+  } finally {
+    isLoadingLinks.value = false
+  }
+}
 
 const clickedLinkId = ref(null)
 
@@ -53,6 +83,7 @@ const trackClick = async (link) => {
 
 onMounted(() => {
   fetchVisitorData()
+  fetchLinks()
 })
 </script>
 
@@ -84,7 +115,11 @@ onMounted(() => {
     </div>
 
     <!-- Links Section -->
-    <div class="w-full flex flex-col gap-3">
+    <div v-if="isLoadingLinks" class="w-full flex flex-col gap-3 items-center justify-center py-6 text-green-500/50 text-xs">
+      <div class="animate-spin mb-2">|</div>
+      <span>FETCHING LINKS...</span>
+    </div>
+    <div v-else class="w-full flex flex-col gap-3">
       <a 
         v-for="link in links" 
         :key="link.id" 
