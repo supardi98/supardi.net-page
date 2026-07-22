@@ -11,6 +11,7 @@ const portfolios = ref([])
 const selectedPortfolio = ref(null)
 const clickedPortfolioId = ref(null)
 let pObserver = null
+let lastScrollY = 0
 
 const fetchPortfolios = async () => {
   try {
@@ -40,9 +41,9 @@ const fetchPortfolios = async () => {
 
 const decryptChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*!'
 
-const animatePortfolios = () => {
+const animatePortfolios = (reverse = false) => {
   const animateItem = (idx) => {
-    if (idx >= portfolios.value.length) return;
+    if (idx >= portfolios.value.length || idx < 0) return;
     const item = portfolios.value[idx];
     
     let iteration = 0;
@@ -77,13 +78,13 @@ const animatePortfolios = () => {
         item.displayDesc = item.desc
         item.imageGrid = Array(48).fill(false) 
         
-        animateItem(idx + 1)
+        animateItem(reverse ? idx - 1 : idx + 1)
       }
       iteration += 1
     }, 25)
   }
   
-  animateItem(0)
+  animateItem(reverse ? portfolios.value.length - 1 : 0)
 }
 
 const resetPortfolios = () => {
@@ -117,12 +118,16 @@ onMounted(() => {
   
   if (portfolioSectionRef.value) {
     pObserver = new IntersectionObserver((entries) => {
+      const currentScrollY = window.scrollY
+      const isScrollingUp = currentScrollY < lastScrollY
+      lastScrollY = currentScrollY
+
       if (entries[0].isIntersecting) {
-        animatePortfolios()
+        animatePortfolios(isScrollingUp)
       } else {
         resetPortfolios()
       }
-    }, { threshold: 0.1 })
+    }, { threshold: 0.1, rootMargin: '0px 0px -25% 0px' })
     pObserver.observe(portfolioSectionRef.value)
   }
 })

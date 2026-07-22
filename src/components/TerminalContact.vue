@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAudio } from '../composables/useAudio'
 import { Terminal } from 'lucide-vue-next'
 
@@ -136,10 +136,38 @@ const submitContactTerminal = async () => {
     }, 5000)
   }
 }
+
+const terminalSectionRef = ref(null)
+const isVisible = ref(false)
+let observer = null
+
+onMounted(() => {
+  if (terminalSectionRef.value) {
+    observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        isVisible.value = true
+      } else {
+        isVisible.value = false
+      }
+    }, { threshold: 0.1, rootMargin: '0px 0px -25% 0px' })
+    observer.observe(terminalSectionRef.value)
+  }
+})
+
+onUnmounted(() => {
+  if (observer && terminalSectionRef.value) {
+    observer.unobserve(terminalSectionRef.value)
+  }
+})
 </script>
 
 <template>
-  <div class="w-full max-w-2xl relative z-20" id="contact">
+  <div 
+    ref="terminalSectionRef"
+    class="w-full max-w-2xl relative z-20"
+    :class="isVisible ? 'terminal-crt-on' : 'terminal-crt-off'"
+    id="contact"
+  >
     <div class="flex items-center gap-3 mb-6 border-b border-green-500/30 pb-2">
       <Terminal class="w-6 h-6 text-green-500" />
       <h2 class="text-xl font-bold text-green-500 uppercase tracking-widest">/usr/bin/mail</h2>
@@ -216,3 +244,32 @@ const submitContactTerminal = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.terminal-crt-on {
+  animation: crt-on 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.terminal-crt-off {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+@keyframes crt-on {
+  0% {
+    opacity: 0;
+    transform: scale(0.5, 0.005);
+    filter: brightness(300%) contrast(300%);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1, 0.01);
+    filter: brightness(200%) contrast(200%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1, 1);
+    filter: brightness(100%) contrast(100%);
+  }
+}
+</style>

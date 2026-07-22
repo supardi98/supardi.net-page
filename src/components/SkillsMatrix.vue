@@ -11,6 +11,7 @@ const skillsVisible = ref(false)
 const skillsSectionRef = ref(null)
 let skillAnimFrame = null
 let observer = null
+let lastScrollY = 0
 
 const fetchSkills = async () => {
   try {
@@ -40,10 +41,15 @@ const fetchSkills = async () => {
   }
 }
 
-const animateSkillNumbers = () => {
+const animateSkillNumbers = (reverse = false) => {
   if (skillAnimFrame) clearInterval(skillAnimFrame)
   skillAnimFrame = setInterval(() => {
-    const activeSkill = skills.value.find(s => s.currentLevel < s.level)
+    let activeSkill
+    if (reverse) {
+      activeSkill = [...skills.value].reverse().find(s => s.currentLevel < s.level)
+    } else {
+      activeSkill = skills.value.find(s => s.currentLevel < s.level)
+    }
     
     if (activeSkill) {
       activeSkill.currentLevel += Math.floor(Math.random() * 15) + 5
@@ -73,14 +79,18 @@ onMounted(() => {
   
   if (skillsSectionRef.value) {
     observer = new IntersectionObserver((entries) => {
+      const currentScrollY = window.scrollY
+      const isScrollingUp = currentScrollY < lastScrollY
+      lastScrollY = currentScrollY
+
       if (entries[0].isIntersecting) {
         skillsVisible.value = true
-        animateSkillNumbers()
+        animateSkillNumbers(isScrollingUp)
       } else {
         skillsVisible.value = false
         resetSkillNumbers()
       }
-    }, { threshold: 0.2 })
+    }, { threshold: 0.1, rootMargin: '0px 0px -25% 0px' })
     observer.observe(skillsSectionRef.value)
   }
 })
