@@ -85,10 +85,10 @@ const openGame = () => {
     
     <!-- Navigation Buttons -->
     <div v-if="scrollProgress > 5" class="absolute bottom-full right-4 mb-4 flex flex-col gap-2 z-50">
-      <button @click="navigateSection('up')" class="w-10 h-10 flex items-center justify-center border border-green-500 bg-black/80 hover:bg-green-500 hover:text-black transition-colors text-green-500 backdrop-blur-md shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+      <button @click="navigateSection('up')" class="w-10 h-10 flex items-center justify-center border border-green-500 bg-black/80 hover-blink text-green-500 backdrop-blur-md shadow-[0_0_10px_rgba(34,197,94,0.2)]">
         <ChevronUp class="w-6 h-6" />
       </button>
-      <button @click="navigateSection('down')" class="w-10 h-10 flex items-center justify-center border border-green-500 bg-black/80 hover:bg-green-500 hover:text-black transition-colors text-green-500 backdrop-blur-md shadow-[0_0_10px_rgba(34,197,94,0.2)]" v-if="scrollProgress < 100">
+      <button @click="navigateSection('down')" class="w-10 h-10 flex items-center justify-center border border-green-500 bg-black/80 hover-blink text-green-500 backdrop-blur-md shadow-[0_0_10px_rgba(34,197,94,0.2)]" v-if="scrollProgress < 100">
         <ChevronDown class="w-6 h-6" />
       </button>
     </div>

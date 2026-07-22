@@ -36,29 +36,18 @@ onMounted(() => {
 
   setTimeout(() => {
     bootFinished.value = true
+    emit('enter-system')
   }, delay + 500)
 })
-
-const handleEnter = () => {
-  if (bootFinished.value) {
-    emit('enter-system')
-  }
-}
 </script>
 
 <template>
-  <div v-if="isBooting" @click="handleEnter" class="fixed inset-0 z-[200] bg-black text-green-500 font-mono p-6 flex flex-col justify-center items-center cursor-pointer">
+  <div v-if="isBooting" class="fixed inset-0 z-[200] bg-black text-green-500 font-mono p-6 flex flex-col justify-center items-center">
     <div class="flex flex-col gap-1 w-full max-w-3xl mx-auto">
       <div v-for="(log, idx) in bootLogs" :key="idx" class="text-xs md:text-sm">
         {{ log }}
       </div>
       <div v-if="!bootFinished" class="animate-blink">_</div>
-      
-      <div v-if="bootFinished" class="w-full flex justify-center mt-12">
-        <span class="text-green-500 text-sm font-bold tracking-widest uppercase animate-pulse text-center">
-          [ CLICK ANYWHERE TO CONTINUE ]
-        </span>
-      </div>
     </div>
   </div>
 </template>

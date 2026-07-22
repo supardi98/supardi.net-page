@@ -71,7 +71,7 @@ const toggleAudio = () => {
 
 const handleEnterSystem = () => {
   isBooting.value = false
-  playAudio()
+  // playAudio() // Disabled autoplay as requested
 
   const fullName = profile.value.name
   const fullBio = profile.value.bio
@@ -140,7 +140,7 @@ onUnmounted(() => {
       <button @click="toggleAudio" class="p-2 border border-green-500 bg-black/80 text-green-500 hover-blink transition-colors">
         <component :is="isPlaying ? Volume2 : VolumeX" class="w-4 h-4" />
       </button>
-      <audio ref="audioRef" loop autoplay>
+      <audio ref="audioRef" loop>
         <source src="/music.mp3" type="audio/mpeg">
       </audio>
     </div>
@@ -288,6 +288,9 @@ a, button, input, textarea, [cursor="pointer"] {
 
 .hover-blink:hover {
   animation: btn-glitch 0.3s forwards step-end;
+}
+.click-blink {
+  animation: btn-glitch 0.4s forwards step-end;
 }
 .hover-blink:hover,
 .hover-blink:hover * {

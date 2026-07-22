@@ -150,10 +150,10 @@ onUnmounted(() => {
       <div 
         v-for="item in portfolios" 
         :key="item.id"
-        class="group border border-green-500/30 bg-black/40 hover:border-green-500 transition-colors p-4 flex flex-col relative cursor-pointer overflow-hidden"
+        class="group border border-green-500/30 bg-black/40 hover-blink transition-colors p-4 flex flex-col relative cursor-pointer overflow-hidden"
         @click="handlePortfolioClick(item)"
       >
-        <div v-if="clickedPortfolioId === item.id" class="absolute inset-0 bg-green-500/20 animate-ping z-10"></div>
+        <div v-if="clickedPortfolioId === item.id" class="absolute inset-0 click-blink z-10"></div>
         
         <div class="w-full h-32 md:h-40 bg-green-900/20 border border-green-900 mb-4 relative overflow-hidden">
           <img :src="item.image" :alt="item.title" class="absolute inset-0 w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500" />

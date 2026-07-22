@@ -28,9 +28,14 @@ const handleInput = () => {
   updateCursor()
 }
 
+const isContactClicked = ref(false)
+
 const initiateContact = () => {
-  contactState.value = 'initiating'
-  contactLogs.value = []
+  isContactClicked.value = true
+  setTimeout(() => {
+    contactState.value = 'initiating'
+    contactLogs.value = []
+    isContactClicked.value = false
   
   const logs = [
     '> executing sendmail protocol...',
@@ -58,6 +63,7 @@ const initiateContact = () => {
       if (terminalInputRef.value) terminalInputRef.value.focus()
     }, 100)
   }, delay + 500)
+  }, 400)
 }
 
 const focusTerminal = () => {
@@ -148,9 +154,9 @@ const submitContactTerminal = async () => {
       <div class="p-4 min-h-[200px] text-sm flex flex-col font-mono" @click="focusTerminal">
         
         <div v-if="contactState === 'idle'" class="m-auto flex flex-col items-center justify-center text-center opacity-70 hover:opacity-100 transition-opacity cursor-pointer" @click="initiateContact">
-          <span class="animate-pulse mb-2">_</span>
-          <span class="text-green-500 font-bold tracking-widest text-xs border border-green-500 px-4 py-2 hover:bg-green-500 hover:text-black transition-colors">
+          <span class="relative text-green-500 font-bold tracking-widest text-xs border border-green-500 px-4 py-2 hover-blink">
             [ INITIALIZE CONTACT PROTOCOL ]
+            <div v-if="isContactClicked" class="absolute inset-0 click-blink"></div>
           </span>
         </div>
 

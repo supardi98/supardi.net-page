@@ -167,7 +167,7 @@ onUnmounted(() => {
         <div v-if="isGameOver" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10 backdrop-blur-sm">
           <span class="text-red-500 font-bold text-3xl mb-2 tracking-widest uppercase animate-pulse">GAME OVER</span>
           <span class="text-yellow-400 font-mono mb-8">FINAL SCORE: {{ gameScore }}</span>
-          <button @click="initGame" class="px-6 py-2 border border-green-500 text-green-500 font-bold hover:bg-green-500 hover:text-black transition-colors mb-4">
+          <button @click="initGame" class="px-6 py-2 border border-green-500 text-green-500 font-bold hover-blink mb-4">
             [ RESTART ]
           </button>
           <button @click="closeGame" class="text-green-700 text-xs hover:text-green-400">

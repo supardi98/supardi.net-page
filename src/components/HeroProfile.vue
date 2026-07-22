@@ -125,13 +125,13 @@ onMounted(() => {
         :key="link.id" 
         :href="link.url"
         @click.prevent="handleLinkClick(link)"
-        class="group w-full flex items-center gap-3 p-3 border border-green-500/30 hover:border-green-500 bg-green-900/10 hover:bg-green-500/10 transition-all duration-300 relative overflow-hidden"
+        class="group w-full flex items-center gap-3 p-3 border border-green-500/30 hover:border-green-500 bg-green-900/10 hover-blink transition-all duration-300 relative overflow-hidden"
       >
         <!-- Click Ripple Effect -->
-        <div v-if="clickedLinkId === link.id" class="absolute inset-0 bg-green-500/20 animate-ping"></div>
+        <div v-if="clickedLinkId === link.id" class="absolute inset-0 click-blink"></div>
         
         <component :is="link.icon" class="w-5 h-5 text-green-600 group-hover:text-green-400 shrink-0" />
-        <span class="flex-1 text-sm tracking-wider group-hover:pl-2 transition-all duration-300 text-green-500 group-hover:text-white">{{ link.title }}</span>
+        <span class="flex-1 text-sm tracking-wider transition-all duration-300 text-green-500 group-hover:text-white">{{ link.title }}</span>
       </a>
     </div>
   </div>
