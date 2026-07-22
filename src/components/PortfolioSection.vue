@@ -3,6 +3,8 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAudio } from '../composables/useAudio'
 import { Terminal } from 'lucide-vue-next'
 
+const emit = defineEmits(['dialog-toggled'])
+
 const { playTypingSound, playClickSound } = useAudio()
 
 const portfolioSectionRef = ref(null)
@@ -116,8 +118,10 @@ const closeDialog = () => {
 watch(selectedPortfolio, (newVal) => {
   if (newVal) {
     document.body.style.overflow = 'hidden'
+    emit('dialog-toggled', true)
   } else {
     document.body.style.overflow = ''
+    emit('dialog-toggled', false)
   }
 })
 
@@ -170,7 +174,7 @@ onUnmounted(() => {
         <div v-if="clickedPortfolioId === item.id" class="absolute inset-0 click-blink z-10"></div>
         
         <div class="w-full h-32 md:h-40 bg-green-900/20 border border-green-900 mb-4 relative overflow-hidden">
-          <img :src="item.image" :alt="item.title" class="absolute inset-0 w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500" />
+          <img :src="item.image" :alt="item.title" class="absolute inset-0 w-full h-full object-cover grayscale-0 opacity-100 md:grayscale md:opacity-50 md:group-hover:opacity-100 md:group-hover:grayscale-0 transition-all duration-500" />
           <div class="absolute inset-0 grid grid-cols-8 grid-rows-6">
             <div 
               v-for="(block, idx) in item.imageGrid" 
@@ -218,7 +222,7 @@ onUnmounted(() => {
 
           <!-- Body -->
           <div class="p-6 overflow-y-auto overflow-x-hidden">
-            <img :src="selectedPortfolio.image" :alt="selectedPortfolio.title" class="animate-modal-item [animation-delay:100ms] w-full h-48 md:h-64 object-cover border border-green-900 mb-6 grayscale hover:grayscale-0 transition-all duration-500" />
+            <img :src="selectedPortfolio.image" :alt="selectedPortfolio.title" class="animate-modal-item [animation-delay:100ms] w-full h-48 md:h-64 object-cover border border-green-900 mb-6 transition-all duration-500" />
             
             <h2 class="animate-modal-item [animation-delay:200ms] text-2xl font-bold text-green-400 mb-2">> {{ selectedPortfolio.title }}</h2>
             <p class="animate-modal-item [animation-delay:300ms] text-green-700 text-sm font-mono mb-6 leading-relaxed">{{ selectedPortfolio.fullDesc }}</p>

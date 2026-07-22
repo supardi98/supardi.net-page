@@ -32,6 +32,7 @@ const uptime = ref(0)
 const sysTimeHex = ref('')
 
 const isGameOpen = ref(false)
+const isPortfolioDialogOpen = ref(false)
 
 const formattedUptime = computed(() => {
   const h = Math.floor(uptime.value / 3600).toString().padStart(2, '0')
@@ -184,7 +185,7 @@ onUnmounted(() => {
 
       <!-- Portfolio Section -->
       <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
-        <PortfolioSection />
+        <PortfolioSection @dialog-toggled="isPortfolioDialogOpen = $event" />
       </section>
       
       <!-- Skills Section -->
@@ -205,7 +206,7 @@ onUnmounted(() => {
     </footer>
 
     <!-- Scroll Progress Indicator -->
-    <ScrollProgress @open-game="isGameOpen = true" />
+    <ScrollProgress v-if="!isBooting && !isGameOpen && !isPortfolioDialogOpen" @open-game="isGameOpen = true" />
 
     <!-- Game Modal -->
     <MicroPacman :isOpen="isGameOpen" @close="isGameOpen = false" />
