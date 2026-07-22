@@ -34,6 +34,9 @@ const sysTimeHex = ref('')
 const isGameOpen = ref(false)
 const isPortfolioDialogOpen = ref(false)
 
+const scrollY = ref(0)
+const parallaxNodes = ref([])
+
 const formattedUptime = computed(() => {
   const h = Math.floor(uptime.value / 3600).toString().padStart(2, '0')
   const m = Math.floor((uptime.value % 3600) / 60).toString().padStart(2, '0')
@@ -45,6 +48,30 @@ const handleMouseMove = (e) => {
   mouseX.value = e.clientX
   mouseY.value = e.clientY
 }
+
+onMounted(() => {
+  // Generate random parallax nodes
+  const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*()_+{}|:"<>?'
+  for (let i = 0; i < 150; i++) {
+    let str = ''
+    for (let j = 0; j < Math.floor(Math.random() * 20 + 5); j++) {
+      str += chars[Math.floor(Math.random() * chars.length)]
+    }
+    parallaxNodes.value.push({
+      text: str,
+      left: Math.random() * 100,
+      top: Math.random() * 300 - 50,
+      speed: Math.random() * 0.8 + 0.2,
+      opacity: Math.random() * 0.2 + 0.1,
+      size: Math.random() * 2 + 0.8
+    })
+  }
+
+  const handleScroll = () => {
+    scrollY.value = window.scrollY
+  }
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
 
 const playAudio = async () => {
   if (audioRef.value && !isPlaying.value) {
@@ -153,8 +180,35 @@ onUnmounted(() => {
       @enter-system="handleEnterSystem"
     />
 
-    <!-- Matrix/Grid Background -->
-    <div class="fixed inset-0 pointer-events-none bg-[linear-gradient(to_right,#0f380f33_1px,transparent_1px),linear-gradient(to_bottom,#0f380f33_1px,transparent_1px)] bg-[size:3rem_3rem]"></div>
+    <!-- Parallax Background -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <!-- Static Grid Base -->
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,#0f380f22_1px,transparent_1px),linear-gradient(to_bottom,#0f380f22_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+      
+      <!-- Moving Grid Layer -->
+      <div 
+        class="absolute -inset-[100%] bg-[linear-gradient(to_right,#0f380f33_1px,transparent_1px),linear-gradient(to_bottom,#0f380f33_1px,transparent_1px)] bg-[size:3rem_3rem]"
+        :style="{ transform: `translateY(${scrollY * -0.3}px)` }"
+      ></div>
+
+      <!-- Floating Code/Binary Chunks -->
+      <div class="absolute -inset-[100%]">
+        <div 
+          v-for="(node, idx) in parallaxNodes" 
+          :key="idx" 
+          class="absolute font-mono text-green-500 transition-transform ease-linear duration-75"
+          :style="{ 
+            left: `${node.left}%`, 
+            top: `${node.top}%`, 
+            opacity: node.opacity, 
+            fontSize: `${node.size}rem`,
+            transform: `translateY(${scrollY * -node.speed}px)`
+          }"
+        >
+          {{ node.text }}
+        </div>
+      </div>
+    </div>
     
     <!-- Cursor Interactive Glow -->
     <div 
