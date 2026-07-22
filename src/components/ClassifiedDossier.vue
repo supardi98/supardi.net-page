@@ -1,9 +1,24 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
+const emit = defineEmits(['trigger-easter-egg'])
+const tapCount = ref(0)
+
 const sectionRef = ref(null)
 const isVisible = ref(false)
 let observer = null
+
+const handleAvatarTap = () => {
+  tapCount.value++
+  if (tapCount.value >= 5) {
+    tapCount.value = 0
+    emit('trigger-easter-egg')
+  }
+  // reset if they don't tap again within 1 second
+  setTimeout(() => {
+    if (tapCount.value > 0) tapCount.value = 0
+  }, 1000)
+}
 
 onMounted(() => {
   observer = new IntersectionObserver((entries) => {
@@ -45,7 +60,10 @@ onUnmounted(() => {
 
       <div class="flex flex-col md:flex-row gap-8 relative z-20">
         <!-- Photo -->
-        <div class="w-32 h-40 md:w-48 md:h-64 border border-green-500/50 bg-green-900/20 relative shrink-0 flex items-center justify-center overflow-hidden grayscale-0 md:grayscale md:hover:grayscale-0 transition-all duration-700 cursor-crosshair group mx-auto md:mx-0 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+        <div 
+          @click="handleAvatarTap"
+          class="w-32 h-40 md:w-48 md:h-64 border border-green-500/50 bg-green-900/20 relative shrink-0 flex items-center justify-center overflow-hidden grayscale-0 md:grayscale md:hover:grayscale-0 transition-all duration-700 cursor-crosshair group mx-auto md:mx-0 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
+        >
           <div class="absolute inset-0 scanlines opacity-50 pointer-events-none z-10"></div>
           <img src="/avatar.png" alt="Subject Photo" class="w-full h-full object-cover mix-blend-screen opacity-70 group-hover:opacity-100 transition-opacity" />
           <div class="absolute bottom-0 w-full bg-black/90 text-[10px] text-center py-1 border-t border-green-500/30 text-green-500/50 font-bold tracking-widest z-20">SUBJECT_IMG_01</div>

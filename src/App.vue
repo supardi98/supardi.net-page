@@ -6,6 +6,8 @@ import { useAudio } from './composables/useAudio'
 import BootSequence from './components/BootSequence.vue'
 import HeroProfile from './components/HeroProfile.vue'
 import ClassifiedDossier from './components/ClassifiedDossier.vue'
+import MatrixOverlay from './components/MatrixOverlay.vue'
+import FloatingLogs from './components/FloatingLogs.vue'
 import PortfolioSection from './components/PortfolioSection.vue'
 import OperationLogs from './components/OperationLogs.vue'
 import SkillsMatrix from './components/SkillsMatrix.vue'
@@ -35,9 +37,22 @@ const sysTimeHex = ref('')
 
 const isGameOpen = ref(false)
 const isPortfolioDialogOpen = ref(false)
+const isMatrixMode = ref(false)
 
 const scrollY = ref(0)
 const parallaxNodes = ref([])
+
+let secretCode = ''
+const handleGlobalKeydown = (e) => {
+  secretCode += e.key.toLowerCase()
+  if (secretCode.length > 6) {
+    secretCode = secretCode.substring(secretCode.length - 6)
+  }
+  if (secretCode === 'matrix') {
+    isMatrixMode.value = true
+    secretCode = ''
+  }
+}
 
 const formattedUptime = computed(() => {
   const h = Math.floor(uptime.value / 3600).toString().padStart(2, '0')
@@ -73,6 +88,11 @@ onMounted(() => {
     scrollY.value = window.scrollY
   }
   window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
 })
 
 const playAudio = async () => {
@@ -261,9 +281,17 @@ onUnmounted(() => {
 
       <!-- Classified Dossier Section (About Me) -->
       <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative z-10">
-        <ClassifiedDossier />
+        <ClassifiedDossier @trigger-easter-egg="isMatrixMode = true" />
       </section>
     </div>
+
+    <!-- Floating Live Logs -->
+    <FloatingLogs />
+
+    <!-- Easter Egg Matrix Overlay -->
+    <transition name="fade">
+      <MatrixOverlay v-if="isMatrixMode" @close="isMatrixMode = false" />
+    </transition>
 
     <!-- Footer -->
     <footer class="mt-10 pt-10 pb-16 text-[10px] text-green-900 w-full text-center border-t border-green-900/30 uppercase tracking-widest z-10 relative">
