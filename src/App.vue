@@ -6,6 +6,7 @@ import { useAudio } from './composables/useAudio'
 import BootSequence from './components/BootSequence.vue'
 import HeroProfile from './components/HeroProfile.vue'
 import PortfolioSection from './components/PortfolioSection.vue'
+import OperationLogs from './components/OperationLogs.vue'
 import SkillsMatrix from './components/SkillsMatrix.vue'
 import TerminalContact from './components/TerminalContact.vue'
 import ScrollProgress from './components/ScrollProgress.vue'
@@ -241,10 +242,15 @@ onUnmounted(() => {
       <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
         <PortfolioSection @dialog-toggled="isPortfolioDialogOpen = $event" />
       </section>
-      
+
       <!-- Skills Section -->
       <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
         <SkillsMatrix />
+      </section>
+
+      <!-- Operation Logs / Experience Section -->
+      <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative">
+        <OperationLogs />
       </section>
 
       <!-- Contact Section -->
