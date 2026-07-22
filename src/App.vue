@@ -5,6 +5,7 @@ import { useAudio } from './composables/useAudio'
 
 import BootSequence from './components/BootSequence.vue'
 import HeroProfile from './components/HeroProfile.vue'
+import ClassifiedDossier from './components/ClassifiedDossier.vue'
 import PortfolioSection from './components/PortfolioSection.vue'
 import OperationLogs from './components/OperationLogs.vue'
 import SkillsMatrix from './components/SkillsMatrix.vue'
@@ -232,7 +233,7 @@ onUnmounted(() => {
         />
 
         <!-- Scroll Indicator Arrow -->
-        <a href="#portfolio" class="absolute bottom-8 flex flex-col items-center justify-center animate-bounce text-green-500/70 hover:text-green-400 transition-colors cursor-pointer">
+        <a href="#dossier" class="absolute bottom-8 flex flex-col items-center justify-center animate-bounce text-green-500/70 hover:text-green-400 transition-colors cursor-pointer">
           <span class="text-[10px] font-mono tracking-widest mb-1">SCROLL_DOWN</span>
           <ChevronDown class="w-6 h-6" />
         </a>
@@ -258,6 +259,10 @@ onUnmounted(() => {
         <TerminalContact />
       </section>
 
+      <!-- Classified Dossier Section (About Me) -->
+      <section class="scroll-section w-full min-h-screen flex flex-col items-center justify-center p-6 relative z-10">
+        <ClassifiedDossier />
+      </section>
     </div>
 
     <!-- Footer -->

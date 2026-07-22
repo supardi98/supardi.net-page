@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAudio } from '../composables/useAudio'
+import { Terminal } from 'lucide-vue-next'
 
 const { playTypingSound } = useAudio()
 
@@ -87,10 +88,11 @@ onUnmounted(() => {
 
 <template>
   <div id="experience" ref="sectionRef" class="w-full max-w-4xl text-green-500 font-mono scroll-mt-20">
-    <div class="mb-8 border-b border-green-500/30 pb-2 flex justify-between items-end">
-      <h2 class="text-2xl font-bold uppercase tracking-widest flex items-center gap-2">
-        <span class="text-green-400">></span> OPERATION_LOGS.txt <span class="animate-pulse">_</span>
-      </h2>
+    <div class="flex items-center justify-between mb-8 border-b border-green-500/30 pb-2">
+      <div class="flex items-center gap-3">
+        <Terminal class="w-6 h-6 text-green-500" />
+        <h2 class="text-xl font-bold text-green-500 uppercase tracking-widest">/usr/bin/operation_logs</h2>
+      </div>
       <span class="text-xs text-green-500/50 hidden md:block">SYS_LOG_ID: EXP-{{ new Date().getFullYear() }}</span>
     </div>
 
