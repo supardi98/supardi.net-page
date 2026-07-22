@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAudio } from '../composables/useAudio'
 import { Terminal } from 'lucide-vue-next'
 
@@ -113,6 +113,14 @@ const closeDialog = () => {
   selectedPortfolio.value = null
 }
 
+watch(selectedPortfolio, (newVal) => {
+  if (newVal) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
+
 onMounted(() => {
   fetchPortfolios()
   
@@ -133,6 +141,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  document.body.style.overflow = ''
   if (pObserver && portfolioSectionRef.value) {
     pObserver.unobserve(portfolioSectionRef.value)
   }

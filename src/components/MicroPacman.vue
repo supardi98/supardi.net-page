@@ -135,8 +135,10 @@ const closeGame = () => {
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
+    document.body.style.overflow = 'hidden'
     setTimeout(initGame, 100)
   } else {
+    document.body.style.overflow = ''
     closeGame()
   }
 })
@@ -147,11 +149,13 @@ const handleMobileInput = (dx, dy) => {
 
 onMounted(() => {
   if (props.isOpen) {
+    document.body.style.overflow = 'hidden'
     setTimeout(initGame, 100)
   }
 })
 
 onUnmounted(() => {
+  document.body.style.overflow = ''
   closeGame()
 })
 </script>

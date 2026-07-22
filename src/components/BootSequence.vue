@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAudio } from '../composables/useAudio'
 
 const props = defineProps({
@@ -15,6 +15,7 @@ const bootFinished = ref(false)
 const { playTypingSound, playAudio } = useAudio()
 
 onMounted(() => {
+  document.body.style.overflow = 'hidden'
   const logs = [
     'BIOS Date 07/21/2026 19:35:21 Ver 08.11.12',
     'CPU: Quantum Core i9-9900K @ 4.80GHz',
@@ -38,6 +39,10 @@ onMounted(() => {
     bootFinished.value = true
     emit('enter-system')
   }, delay + 500)
+})
+
+onUnmounted(() => {
+  document.body.style.overflow = ''
 })
 </script>
 
